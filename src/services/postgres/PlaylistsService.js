@@ -68,6 +68,15 @@ class PlaylistsService {
   }
 
   async getSongsFromPlaylist(playlistId) {
+    const queryPlaylist = {
+      text: `SELECT playlists.id, playlists.name, users.username FROM playlists 
+      LEFT JOIN users ON users.id = playlists.owner
+      WHERE playlists.id = $1`,
+      values: [playlistId],
+    };
+
+    const resultPlaylist = await this._pool.query(queryPlaylist);
+
     const query = {
       text: `SELECT songs.id, songs.title, songs.performer
       FROM songs
@@ -78,7 +87,7 @@ class PlaylistsService {
 
     const result = await this._pool.query(query);
 
-    return result.rows;
+    return { ...resultPlaylist.rows[0], songs: result.rows };
   }
 
   async deleteSongFromPlaylist(playlistId, songId) {
@@ -94,7 +103,8 @@ class PlaylistsService {
     }
   }
 
-  async addActivityToPlaylist(playlistId, songId, userId, action, time) {
+  async addActivityToPlaylist(playlistId, songId, userId, action) {
+    const time = new Date().toISOString();
     const query = {
       text: "INSERT INTO playlist_activities (playlist_id, song_id, user_id, action, time) VALUES($1, $2, $3, $4, $5) RETURNING id",
       values: [playlistId, songId, userId, action, time],
@@ -109,7 +119,7 @@ class PlaylistsService {
 
   async getActivitiesFromPlaylist(playlistId) {
     const query = {
-      text: `SELECT user.username, songs.title, action, time
+      text: `SELECT users.username, songs.title, action, time
       FROM playlist_activities
       JOIN songs ON songs.id = playlist_activities.song_id
       JOIN users ON users.id = playlist_activities.user_id

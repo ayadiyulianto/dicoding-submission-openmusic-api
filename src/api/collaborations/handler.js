@@ -1,9 +1,15 @@
 const ClientError = require("../../exceptions/ClientError");
 
 class CollaborationsHandler {
-  constructor(collaborationsService, playlistsService, validator) {
+  constructor(
+    collaborationsService,
+    playlistsService,
+    usersService,
+    validator
+  ) {
     this._collaborationsService = collaborationsService;
     this._playlistsService = playlistsService;
+    this._usersService = usersService;
     this._validator = validator;
 
     this.postCollaborationHandler = this.postCollaborationHandler.bind(this);
@@ -17,10 +23,11 @@ class CollaborationsHandler {
       const { id: credentialId } = request.auth.credentials;
       const { playlistId, userId } = request.payload;
 
-      await this._playlistsService.verifyplaylistOwner(
+      await this._playlistsService.verifyPlaylistOwner(
         playlistId,
         credentialId
       );
+      await this._usersService.getUserById(userId);
       const collaborationId =
         await this._collaborationsService.addCollaboration(playlistId, userId);
 
@@ -60,7 +67,7 @@ class CollaborationsHandler {
       const { id: credentialId } = request.auth.credentials;
       const { playlistId, userId } = request.payload;
 
-      await this._playlistsService.verifyplaylistOwner(
+      await this._playlistsService.verifyPlaylistOwner(
         playlistId,
         credentialId
       );

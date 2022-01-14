@@ -1,6 +1,13 @@
-const mapDBToModel = ({ album_id, ...args }) => ({
+/* eslint-disable camelcase */
+
+const mapSongDBToModel = ({ album_id, ...args }) => ({
   ...args,
   albumId: album_id,
 });
 
-module.exports = { mapDBToModel };
+const mapAlbumDBToModel = ({ cover_url, ...args }) => ({
+  ...args,
+  coverUrl: cover_url,
+});
+
+module.exports = { mapSongDBToModel, mapAlbumDBToModel };
